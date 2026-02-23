@@ -1,0 +1,11 @@
+@use '../../../styles.scss' as v;
+
+:host{
+    display: contents;
+}
+.header-container{
+    height: 60px;
+    width: 100%;
+    background-color: v.$white;
+    border-radius: 20px;
+}

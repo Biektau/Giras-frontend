@@ -1,0 +1,10 @@
+:host {
+    display: contents;
+}
+
+.constructor-container {
+    height: calc(100vh - 20px - 60px - 10px);
+    width: 100%;
+    display: flex;
+    gap: 10px;
+}

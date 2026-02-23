@@ -1,0 +1,22 @@
+<div class="item-forms-container">
+    <div class="tabs">
+        <div class="tab-indicator"
+             [style.transform]="'translateX(' + (activeTabIndex() * 100) + '%)'">
+        </div>
+
+        @for (tab of tabs; track tab.id) {
+            <button
+                class="tab"
+                [class.active]="activeTab() === tab.id"
+                (click)="setTab(tab.id)">
+                {{ tab.label }}
+            </button>
+        }
+    </div>
+
+    <div class="forms">
+       @if (activeTab() === 'create'){
+        <create-workwear-form />
+       } 
+    </div>
+</div>
