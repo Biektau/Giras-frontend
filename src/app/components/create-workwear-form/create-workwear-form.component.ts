@@ -3,17 +3,18 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { WorkwearSize } from "../../common/enums/workwear-size.enum";
 import { WorkwearSeason } from "../../common/enums/workwear-season.enum";
 import { WorkwearItemSet } from "../../common/enums/workwear-set.enum";
+import { CustomSelectComponent, SelectOption } from "../../common/components/custom-select.component";
 
 @Component({
-    imports: [ReactiveFormsModule],
+    imports: [ReactiveFormsModule, CustomSelectComponent],
     selector: 'create-workwear-form',
     templateUrl: './create-workwear-form.component.html',
     styleUrl: './create-workwear-form.component.scss'
 })
 export class CreateWorkwearFormComponent {
-    sizeOptions = Object.values(WorkwearSize);
-    seasonOptions = Object.values(WorkwearSeason);
-    setOptions = Object.values(WorkwearItemSet);
+    sizeSelectOptions: SelectOption[] = Object.values(WorkwearSize).map(s => ({ value: s, label: s }));
+    seasonSelectOptions: SelectOption[] = Object.values(WorkwearSeason).map(s => ({ value: s, label: s }));
+    setSelectOptions: SelectOption[] = Object.values(WorkwearItemSet).map(s => ({ value: s, label: s }));
 
     selectedFiles: File[] = [];
     previews: string[] = [];
@@ -58,14 +59,6 @@ export class CreateWorkwearFormComponent {
         });
 
         input.value = '';
-    }
-
-    toggleSize(size: string): void {
-        const current: string[] = this.workwearForm.get('size')?.value ?? [];
-        const updated = current.includes(size)
-            ? current.filter(s => s !== size)
-            : [...current, size];
-        this.workwearForm.get('size')?.setValue(updated);
     }
 
     removeFile(index: number): void {

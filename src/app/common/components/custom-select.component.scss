@@ -1,0 +1,137 @@
+@use '../../../styles.scss' as v;
+.custom-select {
+  position: relative;
+  width: 100%;
+  user-select: none;
+
+  .select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border: 1px solid v.$blue-1;
+    border-radius: 8px;
+    background-color: v.$white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    min-height: 38px;
+
+    &:hover {
+      border-color: v.$blue-2;
+    }
+  }
+
+  &.open .select-trigger {
+    border-color: v.$blue-3;
+  }
+
+  .select-value {
+    color: v.$blue-4;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.placeholder {
+      color: v.$blue-1;
+    }
+  }
+
+  .select-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    color: v.$blue-3;
+    font-size: 12px;
+  }
+
+  .icon-clear {
+    font-size: 10px;
+    color: v.$blue-2;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: v.$blue-4;
+    }
+  }
+
+  .icon-arrow {
+    transition: transform 0.2s;
+  }
+
+  &.open .icon-arrow {
+    transform: rotate(180deg);
+  }
+
+  .select-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: v.$white;
+    border: 1px solid v.$blue-1;
+    border-radius: 8px;
+    z-index: 100;
+    box-shadow: 0 4px 16px rgba(5, 24, 71, 0.1);
+    overflow: hidden;
+  }
+
+  .select-options {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .select-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: v.$blue-4;
+    cursor: pointer;
+    transition: background-color 0.15s;
+
+    &:hover {
+      background-color: v.$blue-1;
+      color: v.$white;
+
+      .checkbox {
+        border-color: v.$white;
+      }
+    }
+
+    &.selected {
+      background-color: rgba(175, 192, 233, 0.3);
+      color: v.$blue-3;
+      font-weight: 500;
+    }
+
+    &.selected:hover {
+      background-color: v.$blue-1;
+      color: v.$white;
+    }
+  }
+
+  .checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid v.$blue-2;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    color: v.$blue-3;
+    transition: border-color 0.15s;
+
+    &.checked {
+      background-color: v.$blue-3;
+      border-color: v.$blue-3;
+      color: v.$white;
+    }
+  }
+}

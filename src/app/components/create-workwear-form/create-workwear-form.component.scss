@@ -3,8 +3,17 @@
 .create-form {
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  gap: 10px;
+  height: 100%;
+  overflow: hidden;
+
+  .form-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 16px 16px 16px;
+  }
 
   .form-section {
     display: flex;
@@ -43,15 +52,15 @@
       select,
       textarea {
         padding: 8px 12px;
-        border: 1px solid #ddd;
+        border: 1px solid v.$blue-1;
         border-radius: 8px;
         font-size: 14px;
         outline: none;
         transition: border-color 0.2s;
-        background-color: #fff;
+        background-color: v.$white;
 
         &:focus {
-          border-color: #666;
+          border-color: v.$blue-3;
         }
       }
 
@@ -67,21 +76,21 @@
     .input-prefix {
       display: flex;
       align-items: center;
-      border: 1px solid #ddd;
+      border: 1px solid v.$blue-1;
       border-radius: 8px;
       overflow: hidden;
       transition: border-color 0.2s;
 
       &:focus-within {
-        border-color: #666;
+        border-color: v.$blue-3;
       }
 
       span {
         padding: 8px 10px;
-        background-color: #f5f5f5;
-        color: #666;
+        background-color: v.$blue-1;
+        color: v.$white;
         font-size: 14px;
-        border-right: 1px solid #ddd;
+        border-right: 1px solid v.$blue-1;
       }
 
       input {
@@ -107,30 +116,30 @@
       gap: 8px;
       font-size: 14px;
       cursor: pointer;
+      color: v.$blue-4;
 
       input[type="checkbox"] {
         width: 16px;
         height: 16px;
         cursor: pointer;
+        accent-color: v.$blue-3;
       }
     }
 
     .upload-btn {
       align-self: flex-start;
       padding: 8px 16px;
-      border: 1px dashed #ccc;
+      border: 1px dashed v.$blue-2;
       border-radius: 8px;
       background: transparent;
       cursor: pointer;
       font-size: 14px;
-      color: #555;
-      transition:
-        border-color 0.2s,
-        color 0.2s;
+      color: v.$blue-3;
+      transition: border-color 0.2s, color 0.2s;
 
       &:hover {
-        border-color: #999;
-        color: #333;
+        border-color: v.$blue-3;
+        color: v.$blue-4;
       }
     }
 
@@ -160,8 +169,8 @@
         height: 20px;
         border-radius: 50%;
         border: none;
-        background: #333;
-        color: #fff;
+        background: v.$blue-4;
+        color: v.$white;
         font-size: 10px;
         cursor: pointer;
         display: flex;
@@ -171,9 +180,17 @@
     }
   }
 
+  .divider {
+    height: 1px;
+    background-color: v.$blue-1;
+  }
+
   .form-actions {
     display: flex;
     gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid v.$blue-1;
+    flex-shrink: 0;
 
     button {
       padding: 10px 20px;
@@ -195,23 +212,19 @@
     }
 
     .btn-primary {
-      background-color: #333;
-      color: #fff;
+      background-color: v.$blue-3;
+      color: v.$white;
     }
 
     .btn-secondary {
-      background-color: #eee;
-      color: #333;
+      background-color: v.$blue-1;
+      color: v.$blue-4;
     }
   }
-
-  .divider {
-    height: 1px;
-    background-color: v.$blue-3;
-  }
 }
+
 .checkbox-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }

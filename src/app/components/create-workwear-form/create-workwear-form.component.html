@@ -1,150 +1,143 @@
 <form [formGroup]="workwearForm" (ngSubmit)="onSubmit()" class="create-form">
-  <div class="form-section">
-    <div class="section-title">Основная информация</div>
+  <div class="form-content">
+    <div class="form-section">
+      <div class="section-title">Основная информация</div>
 
-    <div class="field">
-      <label>Название *</label>
-      <input formControlName="name" placeholder="Введите название" />
-      <span class="error">{{ getErrorMessage("name") }}</span>
-    </div>
-
-    <div class="field">
-      <label>Описание</label>
-      <textarea
-        formControlName="description"
-        rows="3"
-        placeholder="Введите описание"
-      ></textarea>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="form-section">
-    <span class="section-title">Характеристики</span>
-
-    <div class="form-row">
       <div class="field">
-        <label>Размер *</label>
-        <div class="checkbox-group">
-          @for (size of sizeOptions; track size) {
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                [value]="size"
-                [checked]="workwearForm.get('size')?.value?.includes(size)"
-                (change)="toggleSize(size)"
-              />
-              {{ size }}
-            </label>
-          }
-        </div>
-        <span class="error">{{ getErrorMessage("size") }}</span>
+        <label>Название *</label>
+        <input formControlName="name" placeholder="Введите название" />
+        <span class="error">{{ getErrorMessage("name") }}</span>
       </div>
 
       <div class="field">
-        <label>Цвет *</label>
-        <input formControlName="color" placeholder="Введите цвет" />
-        <span class="error">{{ getErrorMessage("color") }}</span>
+        <label>Описание</label>
+        <textarea
+          formControlName="description"
+          rows="3"
+          placeholder="Введите описание"
+        ></textarea>
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="field">
-        <label>Сезон *</label>
-        <select formControlName="season">
-          <option value="" disabled>Выберите сезон</option>
-          @for (season of seasonOptions; track season) {
-            <option [value]="season">{{ season }}</option>
-          }
-        </select>
-        <span class="error">{{ getErrorMessage("season") }}</span>
-      </div>
+    <div class="divider"></div>
 
-      <div class="field">
-        <label>Комплект *</label>
-        <select formControlName="set">
-          <option value="" disabled>Выберите комплект</option>
-          @for (set of setOptions; track set) {
-            <option [value]="set">{{ set }}</option>
-          }
-        </select>
-        <span class="error">{{ getErrorMessage("set") }}</span>
-      </div>
-    </div>
+    <div class="form-section">
+      <span class="section-title">Характеристики</span>
 
-    <div class="field">
-      <label>Материал *</label>
-      <input formControlName="material" placeholder="Введите материал" />
-      <span class="error">{{ getErrorMessage("material") }}</span>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="form-section">
-    <span class="section-title">Ценообразование и артикул</span>
-
-    <div class="form-row">
-      <div class="field">
-        <label>Цена *</label>
-        <div class="input-prefix">
-          <span>₽</span>
-          <input
-            formControlName="price"
-            type="number"
-            placeholder="0.00"
-            step="0.01"
+      <div class="form-row">
+        <div class="field">
+          <label>Размер *</label>
+          <app-custom-select
+            formControlName="size"
+            [options]="sizeSelectOptions"
+            placeholder="Выберите размеры"
+            [multiple]="true"
           />
+          <span class="error">{{ getErrorMessage("size") }}</span>
         </div>
-        <span class="error">{{ getErrorMessage("price") }}</span>
+
+        <div class="field">
+          <label>Цвет *</label>
+          <input formControlName="color" placeholder="Введите цвет" />
+          <span class="error">{{ getErrorMessage("color") }}</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label>Сезон *</label>
+          <app-custom-select
+            formControlName="season"
+            [options]="seasonSelectOptions"
+            placeholder="Выберите сезон"
+          />
+          <span class="error">{{ getErrorMessage("season") }}</span>
+        </div>
+
+        <div class="field">
+          <label>Комплект *</label>
+          <app-custom-select
+            formControlName="set"
+            [options]="setSelectOptions"
+            placeholder="Выберите комплект"
+          />
+          <span class="error">{{ getErrorMessage("set") }}</span>
+        </div>
       </div>
 
       <div class="field">
-        <label>Артикул *</label>
-        <input formControlName="sku" placeholder="Введите артикул" />
-        <span class="error">{{ getErrorMessage("sku") }}</span>
+        <label>Материал *</label>
+        <input formControlName="material" placeholder="Введите материал" />
+        <span class="error">{{ getErrorMessage("material") }}</span>
       </div>
     </div>
-  </div>
 
-  <div class="divider"></div>
+    <div class="divider"></div>
 
-  <div class="form-section">
-    <span class="section-title">Дополнительные параметры</span>
-    <label class="checkbox-label">
-      <input type="checkbox" formControlName="isCertified" />
-      Сертифицирован
-    </label>
-  </div>
+    <div class="form-section">
+      <span class="section-title">Ценообразование и артикул</span>
 
-  <div class="divider"></div>
-
-  <div class="form-section">
-    <span class="section-title">Изображения</span>
-
-    <button type="button" class="upload-btn" (click)="fileInput.click()">
-      Добавить изображения
-    </button>
-    <input
-      #fileInput
-      type="file"
-      accept="image/*"
-      multiple
-      hidden
-      (change)="onFilesSelected($event)"
-    />
-
-    @if (previews.length > 0) {
-      <div class="previews">
-        @for (preview of previews; track preview; let i = $index) {
-          <div class="preview-item">
-            <img [src]="preview" alt="preview" />
-            <button type="button" (click)="removeFile(i)">✕</button>
+      <div class="form-row">
+        <div class="field">
+          <label>Цена *</label>
+          <div class="input-prefix">
+            <span>₽</span>
+            <input
+              formControlName="price"
+              type="number"
+              placeholder="0.00"
+              step="0.01"
+            />
           </div>
-        }
+          <span class="error">{{ getErrorMessage("price") }}</span>
+        </div>
+
+        <div class="field">
+          <label>Артикул *</label>
+          <input formControlName="sku" placeholder="Введите артикул" />
+          <span class="error">{{ getErrorMessage("sku") }}</span>
+        </div>
       </div>
-    }
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-section">
+      <span class="section-title">Дополнительные параметры</span>
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="isCertified" />
+        Сертифицирован
+      </label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-section">
+      <span class="section-title">Изображения</span>
+
+      <button type="button" class="upload-btn" (click)="fileInput.click()">
+        Добавить изображения
+      </button>
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        (change)="onFilesSelected($event)"
+      />
+
+      @if (previews.length > 0) {
+        <div class="previews">
+          @for (preview of previews; track preview; let i = $index) {
+            <div class="preview-item">
+              <img [src]="preview" alt="preview" />
+              <button type="button" (click)="removeFile(i)">✕</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
   </div>
 
   <div class="form-actions">
