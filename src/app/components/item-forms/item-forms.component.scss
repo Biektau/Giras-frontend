@@ -6,6 +6,7 @@
 
 .item-forms-container {
     flex: 1;
+    min-width: 500px;
     height: calc(100vh - 20px - 60px - 10px);
     background-color: v.$white;
     border-radius: 20px;

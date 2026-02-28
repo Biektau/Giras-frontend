@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { WorkwearSize } from "../../common/enums/workwear-size.enum";
 import { WorkwearSeason } from "../../common/enums/workwear-season.enum";
 import { WorkwearItemSet } from "../../common/enums/workwear-set.enum";
-import { CustomSelectComponent, SelectOption } from "../../common/components/custom-select.component";
+import { CustomSelectComponent, SelectOption } from "../../common/components/custom-select/custom-select.component";
 
 @Component({
     imports: [ReactiveFormsModule, CustomSelectComponent],
