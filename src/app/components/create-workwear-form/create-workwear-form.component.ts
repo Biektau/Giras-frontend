@@ -1,9 +1,9 @@
 import { Component, inject } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { WorkwearSize } from "../../common/enums/workwear-size.enum";
-import { WorkwearSeason } from "../../common/enums/workwear-season.enum";
-import { WorkwearItemSet } from "../../common/enums/workwear-set.enum";
-import { CustomSelectComponent, SelectOption } from "../../common/components/custom-select/custom-select.component";
+import { WorkwearSize } from "../../enums/workwear-size.enum";
+import { WorkwearSeason } from "../../enums/workwear-season.enum";
+import { WorkwearItemSet } from "../../enums/workwear-set.enum";
+import { CustomSelectComponent, SelectOption } from "../custom-select/custom-select.component";
 
 @Component({
     imports: [ReactiveFormsModule, CustomSelectComponent],

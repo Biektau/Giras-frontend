@@ -1,4 +1,4 @@
-@use '../../../styles.scss' as v;
+
 
 :host {
     display: contents;
@@ -8,6 +8,9 @@
     min-width: 500px;
     flex-shrink: 0;
     height: calc(100vh - 20px - 60px - 10px);
-    background-color: v.$white;
+    
     border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }

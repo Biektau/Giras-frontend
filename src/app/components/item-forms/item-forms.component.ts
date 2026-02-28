@@ -1,5 +1,5 @@
 import { Component, inject } from "@angular/core";
-import { TabService, TabType } from "../../common/services/tab.service";
+import { TabService, TabType } from "../../services/tab.service";
 import { CreateWorkwearFormComponent } from "../create-workwear-form/create-workwear-form.component";
 
 @Component({

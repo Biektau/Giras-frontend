@@ -1,2 +1,12 @@
 <div class="header-container">
+    @for (category of categories; track category.url) {
+        <a
+        
+            class="nav-link"
+            [routerLink]="category.url"
+            routerLinkActive="active"
+        >
+            {{ category.label }}
+        </a>
+    }
 </div>

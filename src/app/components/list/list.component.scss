@@ -1,0 +1,11 @@
+@use '../../../styles.scss' as v;
+
+:host {
+    display: contents;
+}
+
+.list-container {
+    background-color: v.$white;
+    border-radius: 20px;
+    flex: 1;
+}
