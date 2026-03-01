@@ -1,14 +1,14 @@
 import { Injectable, signal } from "@angular/core";
-import { Item } from "../types/item.type";
+import { Items } from "../types/item.type";
 
 @Injectable({providedIn: 'root'})
 export class ItemsService{
-    readonly items = signal<Item[]>([]);
+    readonly items = signal<Items>([]);
     readonly isLoading = signal(false);
     readonly searchQuery = signal('');
     readonly total = signal(0);
 
-    setItems(items: Item[]) {
+    setItems(items: Items) {
         this.items.set(items);
     }
 

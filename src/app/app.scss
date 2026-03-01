@@ -12,4 +12,8 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+
+     router-outlet {
+        display: none;
+    }
 }

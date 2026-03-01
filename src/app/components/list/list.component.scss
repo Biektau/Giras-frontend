@@ -1,11 +1,146 @@
-@use '../../../styles.scss' as v;
+@use "../../../styles.scss" as v;
 
 :host {
-    display: contents;
+  display: contents;
 }
 
 .list-container {
-    background-color: v.$white;
-    border-radius: 20px;
+  background-color: v.$white;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  height: 100%;
+
+  .loading,
+  .empty {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: v.$blue-2;
+    font-weight: 500;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .list-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    border-bottom: 1px solid v.$blue-3;
+    transition: background-color 0.15s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: rgba(175, 192, 233, 0.15);
+
+      .item-main .item-actions {
+        opacity: 1;
+      }
+
+      .drag-handle {
+        opacity: 0.7;
+      }
+    }
+
+    .item-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+
+      .drag-handle {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        cursor: grab;
+        flex-shrink: 0;
+        opacity: 0.3;
+        transition: opacity 0.15s;
+
+        span {
+          display: block;
+          width: 14px;
+          height: 2px;
+          border-radius: 2px;
+          background-color: v.$blue-3;
+        }
+      }
+
+      .item-name {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: v.$blue-4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .item-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 0.15s;
+        flex-shrink: 0;
+
+        .action-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.15s;
+
+          &.copy-btn {
+            color: v.$blue-2;
+
+            &:hover {
+              background-color: rgba(126, 157, 237, 0.15);
+              color: v.$blue-3;
+            }
+          }
+
+          &.delete-btn {
+            color: #e53935;
+
+            &:hover {
+              background-color: rgba(229, 57, 53, 0.1);
+            }
+          }
+        }
+      }
+    }
+
+    .item-sub {
+      padding: 6px 16px 6px 42px;
+
+      .item-color {
+        font-size: 16px;
+        color: v.$blue-2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+      }
+    }
+  }
 }
