@@ -1,0 +1,19 @@
+@use '../../../styles.scss' as v;
+
+:host {
+    display: contents;
+}
+
+.app {
+    padding: 10px;
+    background-color: v.$blue-1;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    router-outlet {
+        display: none;
+    }
+}

@@ -1,9 +1,13 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, effect } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { WorkwearSize } from "../../enums/workwear-size.enum";
 import { WorkwearSeason } from "../../enums/workwear-season.enum";
 import { WorkwearItemSet } from "../../enums/workwear-set.enum";
 import { CustomSelectComponent, SelectOption } from "../custom-select/custom-select.component";
+import { WorkwearService } from "../../services/workwear.service";
+import { Workwear } from "../../interfaces/workwear.interface";
+import { TabService } from "../../services/tab.service";
+import { FormStateService } from "../../services/form.service";
 
 @Component({
     imports: [ReactiveFormsModule, CustomSelectComponent],
@@ -19,7 +23,12 @@ export class CreateWorkwearFormComponent {
     selectedFiles: File[] = [];
     previews: string[] = [];
 
-    private fb = inject(FormBuilder);
+    private readonly fb = inject(FormBuilder);
+    private readonly workwearService = inject(WorkwearService);
+    private readonly formStateService = inject(FormStateService);
+    private readonly tabService = inject(TabService);
+
+    readonly isEditMode = this.tabService.activeTab;
 
     workwearForm = this.fb.group({
         name: ['', [Validators.required, Validators.maxLength(200)]],
@@ -37,6 +46,32 @@ export class CreateWorkwearFormComponent {
         isCertified: [false],
         material: ['', [Validators.required, Validators.maxLength(100)]]
     });
+
+    constructor() {
+    effect(() => {
+        const item = this.formStateService.selectedItem() as Workwear | null;
+
+        if (item) {
+            this.workwearForm.patchValue({
+                name: item.name,
+                description: item.description ?? '',
+                size: item.size as string[],
+                color: item.color,
+                season: item.season,
+                set: item.set,
+                price: String(item.price),
+                sku: item.sku,
+                isCertified: item.isCertified,
+                material: item.material
+            });
+            this.previews = item.images ?? [];
+        } else {
+            this.workwearForm.reset({ isCertified: false, size: [] });
+            this.selectedFiles = [];
+            this.previews = [];
+        }
+    });
+}
 
     onFilesSelected(event: Event): void {
         const input = event.target as HTMLInputElement;
@@ -86,18 +121,30 @@ export class CreateWorkwearFormComponent {
         formData.append('material', values.material ?? '');
 
         (values.size ?? []).forEach(s => formData.append('size', s));
-
         this.selectedFiles.forEach(file => formData.append('images', file));
 
-        console.log(formData);
-        this.resetForm();
+        const selectedItem = this.formStateService.selectedItem() as Workwear | null;
+
+        if (selectedItem) {
+            this.workwearService.updateItem(selectedItem.id, formData).subscribe({
+                next: () => {
+                    this.formStateService.clear();
+                    this.tabService.setTab('create');
+                },
+                error: (err) => console.error('Ошибка обновления:', err)
+            });
+        } else {
+            this.workwearService.createItem(formData).subscribe({
+                next: () => this.resetForm(),
+                error: (err) => console.error('Ошибка создания:', err)
+            });
+        }
     }
 
     resetForm(): void {
-        this.workwearForm.reset({ isCertified: false, size: [] });
-        this.selectedFiles = [];
-        this.previews = [];
-    }
+    this.formStateService.clear(); 
+    this.tabService.setTab('create');
+}
 
     getErrorMessage(field: string): string {
         const control = this.workwearForm.get(field);

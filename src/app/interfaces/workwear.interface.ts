@@ -2,7 +2,7 @@ import { WorkwearSeason } from "../enums/workwear-season.enum";
 import { WorkwearItemSet } from "../enums/workwear-set.enum";
 import { WorkwearSize } from "../enums/workwear-size.enum";
 
-export interface Workwear{
+export interface Workwear {
     id: string;
     name: string;
     description?: string;
@@ -15,6 +15,6 @@ export interface Workwear{
     isCertified: boolean
     images?: string[];
     material: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
 }

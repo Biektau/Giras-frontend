@@ -7,18 +7,15 @@ export interface Tab {
     label: string;
 }
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class TabService {
     readonly tabs: Tab[] = [
         { id: 'update', label: 'Обновить' },
         { id: 'create', label: 'Создать' },
-    ]
+    ];
 
     private readonly activeTabSignal = signal<TabType>('create');
     readonly activeTab = this.activeTabSignal.asReadonly();
-
 
     readonly activeTabIndex = computed(() =>
         this.tabs.findIndex(t => t.id === this.activeTab())

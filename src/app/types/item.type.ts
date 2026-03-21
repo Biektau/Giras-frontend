@@ -1,3 +1,4 @@
 import { Workwear } from "../interfaces/workwear.interface";
 
-export type Items = Workwear[]
+export type Item = Workwear; // | Shoes | Gloves
+export type Items = Item[];

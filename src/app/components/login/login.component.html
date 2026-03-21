@@ -1,0 +1,23 @@
+<app-auth-layout>
+    <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="field">
+            <label>Email</label>
+            <input formControlName="email" type="email" placeholder="Введите email" />
+            <span class="error">{{ getError('email') }}</span>
+        </div>
+
+        <div class="field">
+            <label>Пароль</label>
+            <input formControlName="password" type="password" placeholder="Введите пароль" />
+            <span class="error">{{ getError('password') }}</span>
+        </div>
+
+        @if (serverError()) {
+            <div class="server-error">{{ serverError() }}</div>
+        }
+
+        <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            {{ isLoading() ? 'Входим...' : 'Войти' }}
+        </button>
+    </form>
+</app-auth-layout>

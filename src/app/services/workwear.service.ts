@@ -2,13 +2,15 @@ import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { ItemsService } from "./items.service";
 import { Items } from "../types/item.type";
+import { tap } from "rxjs";
+import { Workwear } from "../interfaces/workwear.interface";
 
 @Injectable({ providedIn: 'root' })
 export class WorkwearService {
     private readonly http = inject(HttpClient);
     private readonly itemsService = inject(ItemsService);
 
-    private readonly apiUrl = 'http://localhost:7000/api/workwear';
+    private readonly apiUrl = 'http://localhost:3000/api/workwear';
 
     loadItems() {
         this.itemsService.setLoading(true);
@@ -21,15 +23,23 @@ export class WorkwearService {
         });
     }
 
-    deleteItem(id: number) {
-        return this.http.delete(`${this.apiUrl}/${id}`);
+    deleteItem(id: string) {
+        return this.http.delete(`${this.apiUrl}/delete-one/${id}`).pipe(
+            tap(() => this.itemsService.removeItem(id))
+        );
     }
 
     createItem(formData: FormData) {
-        return this.http.post(this.apiUrl, formData);
+        return this.http.post<Workwear>(`${this.apiUrl}/create-one`, formData).pipe(
+            tap((newItem) => {
+                this.itemsService.addItem(newItem);
+            })
+        );
     }
 
-    updateItem(id: number, formData: FormData) {
-        return this.http.put(`${this.apiUrl}/${id}`, formData);
+    updateItem(id: string, formData: FormData) {
+        return this.http.put<Workwear>(`${this.apiUrl}/update-one/${id}`, formData).pipe(
+            tap((updatedItem) => this.itemsService.updateItem(updatedItem))
+        );
     }
 }

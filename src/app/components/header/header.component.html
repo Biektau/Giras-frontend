@@ -1,12 +1,25 @@
 <div class="header-container">
-    @for (category of categories; track category.url) {
-        <a
-        
-            class="nav-link"
-            [routerLink]="category.url"
-            routerLinkActive="active"
-        >
-            {{ category.label }}
-        </a>
+    <div class="nav-links">
+        @for (category of categories; track category.url) {
+            <a
+                class="nav-link"
+                [routerLink]="category.url"
+                routerLinkActive="active"
+            >
+                {{ category.label }}
+            </a>
+        }
+    </div>
+
+    @if (currentUser()) {
+        <div class="user-info">
+            <div class="user-details">
+                <span class="user-name">{{ currentUser()!.name }}</span>
+                <span class="user-email">{{ currentUser()!.email }}</span>
+            </div>
+            <button class="logout-btn" (click)="logout()">
+                <lucide-icon [img]="LogOut" [size]="16" />
+            </button>
+        </div>
     }
 </div>
