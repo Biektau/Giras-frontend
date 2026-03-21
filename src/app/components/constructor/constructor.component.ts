@@ -50,6 +50,12 @@ export class ConstructorComponent implements OnInit {
                 this.tabService.setTab('update');
             })
         );
+
+        this.subscription.add(
+            this.listEventsService.copy$.subscribe(id => {
+                this.copyByCategory(id);
+            })
+        );
     }
 
     private loadByCategory(category: string) {
@@ -69,6 +75,15 @@ export class ConstructorComponent implements OnInit {
         switch (category) {
             case 'workwear':
                 this.workwearService.deleteItem(id).subscribe();
+                break;
+        }
+    }
+
+    private copyByCategory(id: string) {
+        const category = this.route.snapshot.url[0]?.path;
+        switch (category) {
+            case 'workwear':
+                this.workwearService.copyItem(id).subscribe();
                 break;
         }
     }

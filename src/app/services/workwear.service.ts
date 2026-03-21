@@ -37,6 +37,12 @@ export class WorkwearService {
         );
     }
 
+    copyItem(id: string) {
+        return this.http.post<Workwear>(`${this.apiUrl}/copy-one/${id}`, {}).pipe(
+            tap(newItem => this.itemsService.addItem(newItem))
+        );
+    }
+
     updateItem(id: string, formData: FormData) {
         return this.http.put<Workwear>(`${this.apiUrl}/update-one/${id}`, formData).pipe(
             tap((updatedItem) => this.itemsService.updateItem(updatedItem))

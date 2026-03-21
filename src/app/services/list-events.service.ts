@@ -10,11 +10,18 @@ export class ListEventsService {
     private readonly selectSubject = new Subject<Item>();
     readonly select$ = this.selectSubject.asObservable();
 
+    private readonly copySubject = new Subject<string>();
+    readonly copy$ = this.copySubject.asObservable();
+
     emitDelete(id: string) {
         this.deleteSubject.next(id);
     }
 
     emitSelect(item: Item) {
         this.selectSubject.next(item);
+    }
+
+    emitCopy(id: string) {
+        this.copySubject.next(id);
     }
 }
