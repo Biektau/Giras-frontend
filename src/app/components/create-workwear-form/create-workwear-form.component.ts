@@ -41,7 +41,7 @@ export class CreateWorkwearFormComponent {
         sku: ['', [
             Validators.required,
             Validators.maxLength(50),
-            Validators.pattern(/^[A-Za-z0-9-_]+$/)
+            Validators.pattern(/^[\p{L}0-9_-]+$/u)
         ]],
         isCertified: [false],
         material: ['', [Validators.required, Validators.maxLength(100)]]
@@ -167,7 +167,7 @@ export class CreateWorkwearFormComponent {
             return `Не более ${control.errors['maxlength'].requiredLength} символов`;
         }
         if (control.errors['min']) return 'Цена должна быть больше 0';
-        if (control.errors['pattern']) return 'Только буквы, цифры, дефисы и подчёркивания';
+        if (control.errors['pattern']) return 'Буквы (в т.ч. кириллица), цифры, дефис и подчёркивание';
 
         return 'Некорректное значение';
     }
