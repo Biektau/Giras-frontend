@@ -10,6 +10,7 @@ import { TabService } from "../../services/tab.service";
 import { FormStateService } from "../../services/form.service";
 import { injectMutation, injectQueryClient } from "@tanstack/angular-query-experimental";
 import { CategoryService } from "../../services/category.service";
+import { QUERY_KEYS } from "../../query-keys";
 
 @Component({
     imports: [ReactiveFormsModule, CustomSelectComponent],
@@ -54,7 +55,7 @@ export class CreateWorkwearFormComponent {
     readonly createMutation = injectMutation(() => ({
         mutationFn: (formData: FormData) => this.workwearService.createItem(formData),
         onSuccess: () => {
-            this.queryClient.invalidateQueries({ queryKey: ['items', this.categoryService.current()] });
+            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
             this.resetForm();
         },
         onError: (err: unknown) => console.error('Ошибка создания:', err)
@@ -64,7 +65,7 @@ export class CreateWorkwearFormComponent {
         mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
             this.workwearService.updateItem(id, formData),
         onSuccess: () => {
-            this.queryClient.invalidateQueries({ queryKey: ['items', this.categoryService.current()] });
+            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
             this.formStateService.clear();
             this.tabService.setTab('create');
         },

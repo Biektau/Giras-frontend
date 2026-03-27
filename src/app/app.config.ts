@@ -15,7 +15,7 @@ export const appConfig: ApplicationConfig = {
     provideAngularQuery(new QueryClient({
       defaultOptions: {
         queries: {
-          staleTime: 1000 * 60 * 5,
+          staleTime: 30_000,
           retry: 1,
         }
       }
