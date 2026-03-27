@@ -26,4 +26,11 @@ export class ItemsQueryService {
             default: return Promise.reject(new Error(`Копирование для категории "${category}" не поддерживается`));
         }
     }
+
+    reorderByCategory(category: string, items: { id: string; order: number }[]): Promise<void> {
+        switch (category) {
+            case 'workwear': return this.workwearService.reorderItems(items);
+            default: return Promise.reject(new Error(`Сортировка для категории "${category}" не поддерживается`));
+        }
+    }
 }

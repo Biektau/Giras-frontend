@@ -5,11 +5,23 @@
         } @else if (items().length === 0) {
             <div class="empty">Ничего не найдено</div>
         } @else {
-            <div class="list">
-                @for (item of items(); track item.id) {
-                    <div class="list-item" (click)="onSelect(item)"  [class.selected]="selectedItem()?.id === item.id">
+            <div class="list" #listRef
+                (dragover)="onListDragOver($event)"
+                (drop)="onDrop($event)"
+                (dragleave)="onDragLeave($event)">
+                @for (item of items(); track item.id; let i = $index) {
+                    <div class="list-item"
+                        [class.selected]="selectedItem()?.id === item.id"
+                        [class.is-dragging]="draggedIndex() === i"
+                        [style.transform]="getItemTransform(i)"
+                        [attr.draggable]="draggableItemId() === item.id"
+                        (click)="onSelect(item)"
+                        (dragstart)="onDragStart($event, i)"
+                        (dragend)="onDragEnd($event)">
                         <div class="item-main">
-                            <div class="drag-handle">
+                            <div class="drag-handle"
+                                (mousedown)="onHandleMouseDown(item.id, $event)"
+                                (mouseup)="draggableItemId.set(null)">
                                 <span></span>
                                 <span></span>
                                 <span></span>

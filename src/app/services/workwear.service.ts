@@ -28,4 +28,8 @@ export class WorkwearService {
     updateItem(id: string, formData: FormData): Promise<Workwear> {
         return firstValueFrom(this.http.put<Workwear>(`${this.apiUrl}/update-one/${id}`, formData));
     }
+
+    reorderItems(items: { id: string; order: number }[]): Promise<void> {
+        return firstValueFrom(this.http.patch<void>(`${this.apiUrl}/reorder`, items));
+    }
 }
