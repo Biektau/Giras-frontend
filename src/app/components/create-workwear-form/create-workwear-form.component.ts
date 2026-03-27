@@ -23,8 +23,13 @@ export class CreateWorkwearFormComponent {
     seasonSelectOptions: SelectOption[] = Object.values(WorkwearSeason).map(s => ({ value: s, label: s }));
     setSelectOptions: SelectOption[] = Object.values(WorkwearItemSet).map(s => ({ value: s, label: s }));
 
+    existingImages: string[] = [];
     selectedFiles: File[] = [];
-    previews: string[] = [];
+    newPreviews: string[] = [];
+
+    get previews(): string[] {
+        return [...this.existingImages, ...this.newPreviews];
+    }
 
     private readonly fb = inject(FormBuilder);
     private readonly workwearService = inject(WorkwearService);
@@ -89,11 +94,14 @@ export class CreateWorkwearFormComponent {
                     isCertified: item.isCertified,
                     material: item.material
                 });
-                this.previews = item.images ?? [];
+                this.existingImages = [...(item.images ?? [])];
+                this.selectedFiles = [];
+                this.newPreviews = [];
             } else {
                 this.workwearForm.reset({ isCertified: false, size: [] });
+                this.existingImages = [];
                 this.selectedFiles = [];
-                this.previews = [];
+                this.newPreviews = [];
             }
         });
     }
@@ -114,7 +122,7 @@ export class CreateWorkwearFormComponent {
 
         newFiles.forEach(file => {
             const reader = new FileReader();
-            reader.onload = (e) => this.previews.push(e.target?.result as string);
+            reader.onload = (e) => this.newPreviews.push(e.target?.result as string);
             reader.readAsDataURL(file);
         });
 
@@ -122,8 +130,13 @@ export class CreateWorkwearFormComponent {
     }
 
     removeFile(index: number): void {
-        this.selectedFiles.splice(index, 1);
-        this.previews.splice(index, 1);
+        if (index < this.existingImages.length) {
+            this.existingImages.splice(index, 1);
+        } else {
+            const newIndex = index - this.existingImages.length;
+            this.selectedFiles.splice(newIndex, 1);
+            this.newPreviews.splice(newIndex, 1);
+        }
     }
 
     onSubmit(): void {
@@ -146,6 +159,7 @@ export class CreateWorkwearFormComponent {
         formData.append('material', values.material ?? '');
 
         (values.size ?? []).forEach(s => formData.append('size', s));
+        this.existingImages.forEach(url => formData.append('existingImages', url));
         this.selectedFiles.forEach(file => formData.append('images', file));
 
         const selectedItem = this.formStateService.selectedItem() as Workwear | null;
