@@ -37,8 +37,11 @@ export class ListComponent {
 
     readonly deleteMutation = injectMutation(() => ({
         mutationFn: (id: string) => this.itemsQueryService.deleteByCategory(this.category(), id),
-        onSuccess: () => {
-            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.category()) });
+        onSuccess: (_data: unknown, id: string) => {
+            this.queryClient.setQueryData<Item[]>(
+                QUERY_KEYS.items(this.category()),
+                (old = []) => old.filter(i => i.id !== id),
+            );
             this.toast.success('Элемент удалён');
         },
         onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка удаления'))

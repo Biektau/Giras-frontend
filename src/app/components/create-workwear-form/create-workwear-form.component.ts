@@ -11,6 +11,7 @@ import { FormStateService } from "../../services/form.service";
 import { injectMutation, injectQueryClient } from "@tanstack/angular-query-experimental";
 import { CategoryService } from "../../services/category.service";
 import { ToastService, extractErrorMessage } from "../../services/toast.service";
+import { Item } from "../../types/item.type";
 import { QUERY_KEYS } from "../../query-keys";
 
 @Component({
@@ -61,8 +62,11 @@ export class CreateWorkwearFormComponent {
 
     readonly createMutation = injectMutation(() => ({
         mutationFn: (formData: FormData) => this.workwearService.createItem(formData),
-        onSuccess: () => {
-            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
+        onSuccess: (newItem: Item) => {
+            this.queryClient.setQueryData<Item[]>(
+                QUERY_KEYS.items(this.categoryService.current()),
+                (old = []) => [...old, newItem],
+            );
             this.toast.success('Элемент создан');
             this.workwearForm.reset({ isCertified: false, size: [] });
             this.existingImages = [];
@@ -75,8 +79,11 @@ export class CreateWorkwearFormComponent {
     readonly updateMutation = injectMutation(() => ({
         mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
             this.workwearService.updateItem(id, formData),
-        onSuccess: () => {
-            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
+        onSuccess: (updatedItem: Item) => {
+            this.queryClient.setQueryData<Item[]>(
+                QUERY_KEYS.items(this.categoryService.current()),
+                (old = []) => old.map(i => i.id === updatedItem.id ? updatedItem : i),
+            );
             this.toast.success('Изменения сохранены');
         },
         onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка обновления'))
