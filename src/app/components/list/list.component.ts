@@ -4,6 +4,7 @@ import { ItemsQueryService } from "../../services/items-query.service";
 import { CategoryService } from "../../services/category.service";
 import { FormStateService } from "../../services/form.service";
 import { TabService } from "../../services/tab.service";
+import { ToastService, extractErrorMessage } from "../../services/toast.service";
 import { Copy, LucideAngularModule, Trash2 } from "lucide-angular";
 import { Item } from "../../types/item.type";
 import { QUERY_KEYS } from "../../query-keys";
@@ -20,6 +21,7 @@ export class ListComponent {
     private readonly queryClient = injectQueryClient();
     private readonly formStateService = inject(FormStateService);
     private readonly tabService = inject(TabService);
+    private readonly toast = inject(ToastService);
 
     readonly selectedItem = this.formStateService.selectedItem;
     readonly category = this.categoryService.current;
@@ -35,12 +37,20 @@ export class ListComponent {
 
     readonly deleteMutation = injectMutation(() => ({
         mutationFn: (id: string) => this.itemsQueryService.deleteByCategory(this.category(), id),
-        onSuccess: () => this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.category()) })
+        onSuccess: () => {
+            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.category()) });
+            this.toast.success('Элемент удалён');
+        },
+        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка удаления'))
     }));
 
     readonly copyMutation = injectMutation(() => ({
         mutationFn: (id: string) => this.itemsQueryService.copyByCategory(this.category(), id),
-        onSuccess: () => this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.category()) })
+        onSuccess: () => {
+            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.category()) });
+            this.toast.success('Элемент скопирован');
+        },
+        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка копирования'))
     }));
 
     readonly items = computed(() => this.itemsQuery.data() ?? []);

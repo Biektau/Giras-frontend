@@ -1,0 +1,11 @@
+<div class="toast-container">
+    @for (toast of toastService.toasts(); track toast.id) {
+        <div class="toast toast--{{ toast.type }}">
+            <lucide-icon [img]="getIcon(toast.type)" [size]="18" class="toast__icon" />
+            <span class="toast__message">{{ toast.message }}</span>
+            <button class="toast__close" (click)="toastService.remove(toast.id)">
+                <lucide-icon [img]="X" [size]="14" />
+            </button>
+        </div>
+    }
+</div>

@@ -10,6 +10,7 @@ import { TabService } from "../../services/tab.service";
 import { FormStateService } from "../../services/form.service";
 import { injectMutation, injectQueryClient } from "@tanstack/angular-query-experimental";
 import { CategoryService } from "../../services/category.service";
+import { ToastService, extractErrorMessage } from "../../services/toast.service";
 import { QUERY_KEYS } from "../../query-keys";
 
 @Component({
@@ -37,6 +38,7 @@ export class CreateWorkwearFormComponent {
     private readonly tabService = inject(TabService);
     private readonly queryClient = injectQueryClient();
     private readonly categoryService = inject(CategoryService);
+    private readonly toast = inject(ToastService);
 
     readonly isEditMode = this.tabService.activeTab;
 
@@ -61,9 +63,10 @@ export class CreateWorkwearFormComponent {
         mutationFn: (formData: FormData) => this.workwearService.createItem(formData),
         onSuccess: () => {
             this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
+            this.toast.success('Элемент создан');
             this.resetForm();
         },
-        onError: (err: unknown) => console.error('Ошибка создания:', err)
+        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка создания'))
     }));
 
     readonly updateMutation = injectMutation(() => ({
@@ -71,10 +74,11 @@ export class CreateWorkwearFormComponent {
             this.workwearService.updateItem(id, formData),
         onSuccess: () => {
             this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
+            this.toast.success('Изменения сохранены');
             this.formStateService.clear();
             this.tabService.setTab('create');
         },
-        onError: (err: unknown) => console.error('Ошибка обновления:', err)
+        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка обновления'))
     }));
 
     constructor() {

@@ -1,0 +1,90 @@
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    min-width: 260px;
+    max-width: 380px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    font-weight: 500;
+    pointer-events: all;
+    animation: toast-in 0.25s ease;
+
+    &--success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-left: 4px solid #4caf50;
+
+        lucide-icon { color: #4caf50; }
+    }
+
+    &--error {
+        background: #ffebee;
+        color: #c62828;
+        border-left: 4px solid #ef5350;
+
+        lucide-icon { color: #ef5350; }
+    }
+
+    &--info {
+        background: #e3f2fd;
+        color: #1565c0;
+        border-left: 4px solid #42a5f5;
+
+        lucide-icon { color: #42a5f5; }
+    }
+
+    &--warning {
+        background: #fff3e0;
+        color: #e65100;
+        border-left: 4px solid #ff9800;
+
+        lucide-icon { color: #ff9800; }
+    }
+
+    &__message {
+        flex: 1;
+        line-height: 1.4;
+    }
+
+    &__close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 2px;
+        display: flex;
+        align-items: center;
+        opacity: 0.5;
+        transition: opacity 0.15s;
+        color: inherit;
+        flex-shrink: 0;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

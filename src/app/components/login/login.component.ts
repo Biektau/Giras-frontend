@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { switchMap } from 'rxjs';
 import { AuthLayoutComponent } from '../auth-layout/auth-layout.component';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
     selector: 'app-login',
@@ -15,6 +16,7 @@ export class LoginComponent {
     private readonly fb = inject(FormBuilder);
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
+    private readonly toast = inject(ToastService);
 
     isLoading = signal(false);
     serverError = signal('');
@@ -45,7 +47,9 @@ export class LoginComponent {
                 this.router.navigate(['/']);
             },
             error: (err) => {
-                this.serverError.set(err.error?.message ?? 'Ошибка входа');
+                const message = err.error?.message ?? 'Ошибка входа';
+                this.serverError.set(message);
+                this.toast.error(message);
                 this.isLoading.set(false);
             }
         });
