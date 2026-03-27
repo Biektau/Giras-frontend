@@ -64,7 +64,10 @@ export class CreateWorkwearFormComponent {
         onSuccess: () => {
             this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
             this.toast.success('Элемент создан');
-            this.resetForm();
+            this.workwearForm.reset({ isCertified: false, size: [] });
+            this.existingImages = [];
+            this.selectedFiles = [];
+            this.newPreviews = [];
         },
         onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка создания'))
     }));
@@ -75,8 +78,6 @@ export class CreateWorkwearFormComponent {
         onSuccess: () => {
             this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.categoryService.current()) });
             this.toast.success('Изменения сохранены');
-            this.formStateService.clear();
-            this.tabService.setTab('create');
         },
         onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка обновления'))
     }));
@@ -178,6 +179,10 @@ export class CreateWorkwearFormComponent {
     resetForm(): void {
         this.formStateService.clear();
         this.tabService.setTab('create');
+        this.workwearForm.reset({ isCertified: false, size: [] });
+        this.existingImages = [];
+        this.selectedFiles = [];
+        this.newPreviews = [];
     }
 
     getErrorMessage(field: string): string {
