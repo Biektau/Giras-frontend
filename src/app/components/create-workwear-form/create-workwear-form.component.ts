@@ -8,6 +8,8 @@ import { WorkwearService } from "../../services/workwear.service";
 import { Workwear } from "../../interfaces/workwear.interface";
 import { TabService } from "../../services/tab.service";
 import { FormStateService } from "../../services/form.service";
+import { injectMutation, injectQueryClient } from "@tanstack/angular-query-experimental";
+import { CategoryService } from "../../services/category.service";
 
 @Component({
     imports: [ReactiveFormsModule, CustomSelectComponent],
@@ -27,6 +29,8 @@ export class CreateWorkwearFormComponent {
     private readonly workwearService = inject(WorkwearService);
     private readonly formStateService = inject(FormStateService);
     private readonly tabService = inject(TabService);
+    private readonly queryClient = injectQueryClient();
+    private readonly categoryService = inject(CategoryService);
 
     readonly isEditMode = this.tabService.activeTab;
 
@@ -47,31 +51,51 @@ export class CreateWorkwearFormComponent {
         material: ['', [Validators.required, Validators.maxLength(100)]]
     });
 
-    constructor() {
-    effect(() => {
-        const item = this.formStateService.selectedItem() as Workwear | null;
+    readonly createMutation = injectMutation(() => ({
+        mutationFn: (formData: FormData) => this.workwearService.createItem(formData),
+        onSuccess: () => {
+            this.queryClient.invalidateQueries({ queryKey: ['items', this.categoryService.current()] });
+            this.resetForm();
+        },
+        onError: (err: unknown) => console.error('Ошибка создания:', err)
+    }));
 
-        if (item) {
-            this.workwearForm.patchValue({
-                name: item.name,
-                description: item.description ?? '',
-                size: item.size as string[],
-                color: item.color,
-                season: item.season,
-                set: item.set,
-                price: String(item.price),
-                sku: item.sku,
-                isCertified: item.isCertified,
-                material: item.material
-            });
-            this.previews = item.images ?? [];
-        } else {
-            this.workwearForm.reset({ isCertified: false, size: [] });
-            this.selectedFiles = [];
-            this.previews = [];
-        }
-    });
-}
+    readonly updateMutation = injectMutation(() => ({
+        mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
+            this.workwearService.updateItem(id, formData),
+        onSuccess: () => {
+            this.queryClient.invalidateQueries({ queryKey: ['items', this.categoryService.current()] });
+            this.formStateService.clear();
+            this.tabService.setTab('create');
+        },
+        onError: (err: unknown) => console.error('Ошибка обновления:', err)
+    }));
+
+    constructor() {
+        effect(() => {
+            const item = this.formStateService.selectedItem() as Workwear | null;
+
+            if (item) {
+                this.workwearForm.patchValue({
+                    name: item.name,
+                    description: item.description ?? '',
+                    size: item.size as string[],
+                    color: item.color,
+                    season: item.season,
+                    set: item.set,
+                    price: String(item.price),
+                    sku: item.sku,
+                    isCertified: item.isCertified,
+                    material: item.material
+                });
+                this.previews = item.images ?? [];
+            } else {
+                this.workwearForm.reset({ isCertified: false, size: [] });
+                this.selectedFiles = [];
+                this.previews = [];
+            }
+        });
+    }
 
     onFilesSelected(event: Event): void {
         const input = event.target as HTMLInputElement;
@@ -126,25 +150,16 @@ export class CreateWorkwearFormComponent {
         const selectedItem = this.formStateService.selectedItem() as Workwear | null;
 
         if (selectedItem) {
-            this.workwearService.updateItem(selectedItem.id, formData).subscribe({
-                next: () => {
-                    this.formStateService.clear();
-                    this.tabService.setTab('create');
-                },
-                error: (err) => console.error('Ошибка обновления:', err)
-            });
+            this.updateMutation.mutate({ id: selectedItem.id, formData });
         } else {
-            this.workwearService.createItem(formData).subscribe({
-                next: () => this.resetForm(),
-                error: (err) => console.error('Ошибка создания:', err)
-            });
+            this.createMutation.mutate(formData);
         }
     }
 
     resetForm(): void {
-    this.formStateService.clear(); 
-    this.tabService.setTab('create');
-}
+        this.formStateService.clear();
+        this.tabService.setTab('create');
+    }
 
     getErrorMessage(field: string): string {
         const control = this.workwearForm.get(field);

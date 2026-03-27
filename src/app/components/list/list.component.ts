@@ -1,9 +1,11 @@
-import { Component, inject } from "@angular/core";
-import { ItemsService } from "../../services/items.service";
-import { ListEventsService } from "../../services/list-events.service";
+import { Component, inject, computed } from "@angular/core";
+import { injectQuery, injectMutation, injectQueryClient } from "@tanstack/angular-query-experimental";
+import { WorkwearService } from "../../services/workwear.service";
+import { CategoryService } from "../../services/category.service";
+import { FormStateService } from "../../services/form.service";
+import { TabService } from "../../services/tab.service";
 import { Copy, LucideAngularModule, Trash2 } from "lucide-angular";
 import { Item } from "../../types/item.type";
-import { FormStateService } from "../../services/form.service";
 
 @Component({
     selector: 'app-list',
@@ -12,30 +14,56 @@ import { FormStateService } from "../../services/form.service";
     imports: [LucideAngularModule]
 })
 export class ListComponent {
-    private readonly itemsService = inject(ItemsService);
-    private readonly listEventsService = inject(ListEventsService);
-
+    private readonly workwearService = inject(WorkwearService);
+    private readonly categoryService = inject(CategoryService);
+    private readonly queryClient = injectQueryClient();
     private readonly formStateService = inject(FormStateService);
-    readonly selectedItem = this.formStateService.selectedItem;
+    private readonly tabService = inject(TabService);
 
-    readonly items = this.itemsService.items;
-    readonly isLoading = this.itemsService.isLoading;
+    readonly selectedItem = this.formStateService.selectedItem;
+    readonly category = this.categoryService.current;
 
     readonly Trash2 = Trash2;
     readonly Copy = Copy;
 
+    readonly itemsQuery = injectQuery(() => ({
+        queryKey: ['items', this.category()],
+        queryFn: () => this.fetchByCategory(this.category()),
+        enabled: !!this.category()
+    }));
+
+    readonly deleteMutation = injectMutation(() => ({
+        mutationFn: (id: string) => this.workwearService.deleteItem(id),
+        onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['items', this.category()] })
+    }));
+
+    readonly copyMutation = injectMutation(() => ({
+        mutationFn: (id: string) => this.workwearService.copyItem(id),
+        onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['items', this.category()] })
+    }));
+
+    readonly items = computed(() => this.itemsQuery.data() ?? []);
+    readonly isLoading = computed(() => this.itemsQuery.isPending());
+
+    private fetchByCategory(category: string): Promise<Item[]> {
+        switch (category) {
+            case 'workwear': return this.workwearService.getAll();
+            default: return Promise.resolve([]);
+        }
+    }
+
     onDelete(id: string, event: MouseEvent) {
         event.stopPropagation();
-
-        this.listEventsService.emitDelete(id);
+        this.deleteMutation.mutate(id);
     }
 
     onSelect(item: Item) {
-        this.listEventsService.emitSelect(item);
+        this.formStateService.select(item);
+        this.tabService.setTab('update');
     }
 
     onCopy(id: string, event: MouseEvent) {
         event.stopPropagation();
-        this.listEventsService.emitCopy(id);
+        this.copyMutation.mutate(id);
     }
 }
