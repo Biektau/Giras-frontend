@@ -1,36 +1,47 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable, signal } from "@angular/core";
 import { Router } from '@angular/router';
-import { tap } from "rxjs";
+import { Observable, shareReplay, tap, finalize } from "rxjs";
 import { AuthUser } from "../interfaces/user.interface";
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-     private readonly http = inject(HttpClient);
+    private readonly http = inject(HttpClient);
     private readonly router = inject(Router);
 
     private readonly apiUrl = 'http://localhost:3000/api/auth';
 
-    accessToken = signal<string | null>(null);
-    currentUser = signal<AuthUser | null>(null);
+    private readonly tokenSignal = signal<string | null>(null);
+    private readonly userSignal = signal<AuthUser | null>(null);
+
+    readonly accessToken = this.tokenSignal.asReadonly();
+    readonly currentUser = this.userSignal.asReadonly();
+
+    private refreshInProgress$: Observable<{ accessToken: string }> | null = null;
 
     login(dto: { email: string; password: string }) {
         return this.http.post<{ accessToken: string }>(`${this.apiUrl}/login`, dto, { withCredentials: true }).pipe(
-            tap(res => this.accessToken.set(res.accessToken))
+            tap(res => this.tokenSignal.set(res.accessToken))
         );
     }
 
-    refresh() {       
-        return this.http.post<{ accessToken: string }>(`${this.apiUrl}/refresh`, {}, { withCredentials: true }).pipe(
-            tap(res => this.accessToken.set(res.accessToken))
-        );
+    refresh(): Observable<{ accessToken: string }> {
+        if (!this.refreshInProgress$) {
+            this.refreshInProgress$ = this.http
+                .post<{ accessToken: string }>(`${this.apiUrl}/refresh`, {}, { withCredentials: true })
+                .pipe(
+                    tap(res => this.tokenSignal.set(res.accessToken)),
+                    finalize(() => this.refreshInProgress$ = null),
+                    shareReplay(1)
+                );
+        }
+        return this.refreshInProgress$;
     }
 
-     logout() {
+    logout() {
         return this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(
             tap(() => {
-                this.accessToken.set(null);
-                this.currentUser.set(null);
+                this.clearAuth();
                 this.router.navigate(['/login']);
             })
         );
@@ -38,11 +49,16 @@ export class AuthService {
 
     getMe() {
         return this.http.get<AuthUser>(`${this.apiUrl}/me`).pipe(
-            tap(user => this.currentUser.set(user))
+            tap(user => this.userSignal.set(user))
         );
     }
 
-     isAuthenticated(): boolean {
+    isAuthenticated(): boolean {
         return !!this.accessToken();
+    }
+
+    clearAuth(): void {
+        this.tokenSignal.set(null);
+        this.userSignal.set(null);
     }
 }

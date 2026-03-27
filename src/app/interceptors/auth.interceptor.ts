@@ -16,8 +16,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
                 return authService.refresh().pipe(
                     switchMap(res => next(addToken(req, res.accessToken))),
                     catchError(() => {
-                        authService.accessToken.set(null);
-                        authService.currentUser.set(null);
+                        authService.clearAuth();
                         router.navigate(['/login']);
                         return throwError(() => error);
                     })
