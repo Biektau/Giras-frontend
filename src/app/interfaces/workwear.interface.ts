@@ -15,6 +15,7 @@ export interface Workwear {
     isCertified: boolean
     images?: string[];
     material: string;
+    order?: number;
     createdAt: string;
     updatedAt: string;
 }

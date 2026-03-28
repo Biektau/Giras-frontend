@@ -65,8 +65,15 @@ export class ListComponent implements OnDestroy {
 
     readonly copyMutation = injectMutation(() => ({
         mutationFn: (id: string) => this.itemsQueryService.copyByCategory(this.category(), id),
-        onSuccess: () => {
-            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.category()) });
+        onSuccess: (newItem: Item) => {
+            this.queryClient.setQueryData<Item[]>(
+                QUERY_KEYS.items(this.category()),
+                (old = []) => {
+                    const merged = [...old, newItem];
+                    merged.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    return merged;
+                },
+            );
             this.toast.success('Элемент скопирован');
         },
         onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка копирования'))
