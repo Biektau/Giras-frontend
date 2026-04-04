@@ -20,5 +20,5 @@ export const routes: Routes = [
             { path: 'others', component: ConstructorComponent },
         ]
     },
-    { path: '**', redirectTo: 'workwear' } // Проверить
+    { path: '**', redirectTo: 'workwear' }
 ];

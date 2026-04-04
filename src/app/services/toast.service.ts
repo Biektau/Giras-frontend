@@ -79,19 +79,16 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
     }
     const e = err as Record<string, unknown>;
 
-    // HttpErrorResponse: реальное тело в error (JSON от Nest)
     const fromBody = messageFromBackendBody(e['error']);
     if (fromBody) {
         return fromBody;
     }
 
-    // Уже распарсенное тело без оболочки Angular
     const direct = messageFromBackendBody(e);
     if (direct) {
         return direct;
     }
 
-    // Не подставляем стандартный текст Angular HttpClient
     const topMsg = e['message'];
     if (typeof topMsg === 'string' && topMsg.trim() && !topMsg.startsWith('Http failure response')) {
         return topMsg.trim();

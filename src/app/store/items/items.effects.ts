@@ -96,7 +96,6 @@ export class ItemsEffects {
         ),
     );
 
-    /** При активном поиске список после мутаций синхронизируем с бэкендом. */
     readonly refetchListWhenSearchingAfterMutation$ = createEffect(() =>
         this.actions$.pipe(
             ofType(
