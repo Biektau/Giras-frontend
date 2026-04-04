@@ -7,6 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormStateService } from '../../services/form.service';
 import { TabService } from '../../services/tab.service';
 import { CategoryService } from '../../services/category.service';
+import { ItemsSearchQueryService } from '../../services/items-search-query.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -23,6 +24,7 @@ export class ConstructorComponent implements OnInit, OnDestroy {
     private readonly formStateService = inject(FormStateService);
     private readonly tabService = inject(TabService);
     private readonly categoryService = inject(CategoryService);
+    private readonly itemsSearchQuery = inject(ItemsSearchQueryService);
 
     private routeSub?: Subscription;
 
@@ -30,6 +32,7 @@ export class ConstructorComponent implements OnInit, OnDestroy {
         this.routeSub = this.route.url.subscribe(segments => {
             const category = segments[0]?.path ?? '';
             this.categoryService.set(category);
+            this.itemsSearchQuery.reset();
             this.formStateService.clear();
             this.tabService.setTab('create');
         });

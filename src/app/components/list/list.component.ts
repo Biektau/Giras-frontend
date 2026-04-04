@@ -1,8 +1,9 @@
-import { Component, computed, effect, inject, signal, viewChild, ElementRef, NgZone, OnDestroy } from "@angular/core";
+import { Component, computed, inject, signal, viewChild, ElementRef, NgZone, OnDestroy } from "@angular/core";
 import { Store } from "@ngrx/store";
 import { CategoryService } from "../../services/category.service";
 import { FormStateService } from "../../services/form.service";
 import { TabService } from "../../services/tab.service";
+import { ItemsSearchQueryService } from "../../services/items-search-query.service";
 import { Copy, LucideAngularModule, Trash2 } from "lucide-angular";
 import { Item } from "../../types/item.type";
 import * as ItemsActions from "../../store/items/items.actions";
@@ -22,6 +23,7 @@ export class ListComponent implements OnDestroy {
     private readonly categoryService = inject(CategoryService);
     private readonly formStateService = inject(FormStateService);
     private readonly tabService = inject(TabService);
+    private readonly searchQuery = inject(ItemsSearchQueryService);
     private readonly zone = inject(NgZone);
 
     readonly selectedItem = this.formStateService.selectedItem;
@@ -32,7 +34,6 @@ export class ListComponent implements OnDestroy {
 
     readonly listRef = viewChild<ElementRef<HTMLElement>>('listRef');
 
-    // ── DnD state ──────────────────────────────────────────────
     readonly draggableItemId = signal<string | null>(null);
     readonly draggedIndex = signal<number>(-1);
     readonly dragOverIndex = signal<number>(-1);
@@ -43,21 +44,17 @@ export class ListComponent implements OnDestroy {
 
     private readonly itemsFromStore = this.store.selectSignal(itemsFeature.selectItems);
     private readonly loadedCategory = this.store.selectSignal(itemsFeature.selectLoadedCategory);
+    private readonly loadedSearch = this.store.selectSignal(itemsFeature.selectLoadedSearch);
     private readonly loading = this.store.selectSignal(itemsFeature.selectLoading);
     private readonly pendingCategory = this.store.selectSignal(itemsFeature.selectPendingCategory);
-
-    constructor() {
-        effect(() => {
-            const cat = this.category();
-            if (cat) {
-                this.store.dispatch(ItemsActions.loadItems({ category: cat }));
-            }
-        });
-    }
+    private readonly pendingSearch = this.store.selectSignal(itemsFeature.selectPendingSearch);
 
     readonly items = computed(() => {
         const cat = this.category();
         if (!cat || this.loadedCategory() !== cat) {
+            return [];
+        }
+        if (this.loadedSearch() !== this.searchQuery.appliedSearch()) {
             return [];
         }
         return this.itemsFromStore();
@@ -65,10 +62,14 @@ export class ListComponent implements OnDestroy {
 
     readonly isLoading = computed(() => {
         const cat = this.category();
-        return !!cat && this.loading() && this.pendingCategory() === cat;
+        return (
+            !!cat &&
+            this.loading() &&
+            this.pendingCategory() === cat &&
+            this.pendingSearch() === this.searchQuery.appliedSearch()
+        );
     });
 
-    // ── List actions ───────────────────────────────────────────
     onDelete(id: string, event: MouseEvent) {
         event.stopPropagation();
         const cat = this.category();
@@ -88,7 +89,6 @@ export class ListComponent implements OnDestroy {
         this.store.dispatch(ItemsActions.copyItem({ category: cat, id }));
     }
 
-    // ── DnD ────────────────────────────────────────────────────
     onHandleMouseDown(itemId: string, event: MouseEvent) {
         event.stopPropagation();
         this.draggableItemId.set(itemId);
@@ -149,7 +149,14 @@ export class ListComponent implements OnDestroy {
         list.splice(toIndex, 0, moved);
 
         const payload = list.map((item, i) => ({ id: item.id, order: i }));
-        this.store.dispatch(ItemsActions.reorderItems({ category: cat, items: list, orderPayload: payload }));
+        this.store.dispatch(
+            ItemsActions.reorderItems({
+                category: cat,
+                search: this.searchQuery.appliedSearch(),
+                items: list,
+                orderPayload: payload,
+            }),
+        );
     }
 
     onDragEnd(event: DragEvent) {
@@ -160,7 +167,6 @@ export class ListComponent implements OnDestroy {
         this.stopAutoScroll();
     }
 
-    // ── Item shift transform ───────────────────────────────────
     getItemTransform(index: number): string {
         const from = this.draggedIndex();
         const to = this.dragOverIndex();
@@ -172,7 +178,6 @@ export class ListComponent implements OnDestroy {
         return '';
     }
 
-    // ── Auto-scroll ────────────────────────────────────────────
     private updateAutoScroll(clientY: number) {
         const el = this.listRef()?.nativeElement;
         if (!el) return;

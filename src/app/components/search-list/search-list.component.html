@@ -1,2 +1,25 @@
 <div class="search-list-container">
+    <span class="search-leading" aria-hidden="true">
+        <lucide-icon [img]="SearchIcon" [size]="18" />
+    </span>
+    <input
+        type="search"
+        class="search-field"
+        placeholder="Название, артикул, цвет, материал, сезон, комплект, размер…"
+        autocomplete="off"
+        enterkeyhint="search"
+        [value]="search.draft()"
+        (input)="onInput($any($event.target).value)"
+    />
+    @if (showClear()) {
+        <button
+            type="button"
+            class="search-clear"
+            aria-label="Очистить поиск"
+            (click)="clear($event)"
+            (mousedown)="$event.preventDefault()"
+        >
+            <lucide-icon [img]="XIcon" [size]="18" />
+        </button>
+    }
 </div>

@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { firstValueFrom } from "rxjs";
 import { Workwear } from "../interfaces/workwear.interface";
 import { Items } from "../types/item.type";
@@ -9,8 +9,12 @@ export class WorkwearService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = 'http://localhost:3000/api/workwear';
 
-    getAll(): Promise<Items> {
-        return firstValueFrom(this.http.get<Items>(`${this.apiUrl}/get-all`));
+    getAll(search: string): Promise<Items> {
+        let params = new HttpParams();
+        if (search) {
+            params = params.set('q', search);
+        }
+        return firstValueFrom(this.http.get<Items>(`${this.apiUrl}/get-all`, { params }));
     }
 
     deleteItem(id: string): Promise<unknown> {

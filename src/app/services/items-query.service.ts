@@ -6,9 +6,9 @@ import { Item } from "../types/item.type";
 export class ItemsQueryService {
     private readonly workwearService = inject(WorkwearService);
 
-    fetchByCategory(category: string): Promise<Item[]> {
+    fetchByCategory(category: string, search: string): Promise<Item[]> {
         switch (category) {
-            case 'workwear': return this.workwearService.getAll();
+            case 'workwear': return this.workwearService.getAll(search);
             default: return Promise.resolve([]);
         }
     }

@@ -1,14 +1,28 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, EMPTY, from, map, mergeMap, of, switchMap, tap } from 'rxjs';
+import { Store } from '@ngrx/store';
+import {
+    catchError,
+    EMPTY,
+    filter,
+    from,
+    map,
+    mergeMap,
+    of,
+    switchMap,
+    tap,
+    withLatestFrom,
+} from 'rxjs';
 import { ItemsQueryService } from '../../services/items-query.service';
 import { WorkwearService } from '../../services/workwear.service';
 import { ToastService, extractErrorMessage } from '../../services/toast.service';
 import * as ItemsActions from './items.actions';
+import { itemsFeature } from './items.reducer';
 
 @Injectable()
 export class ItemsEffects {
     private readonly actions$ = inject(Actions);
+    private readonly store = inject(Store);
     private readonly itemsQueryService = inject(ItemsQueryService);
     private readonly workwearService = inject(WorkwearService);
     private readonly toast = inject(ToastService);
@@ -16,16 +30,16 @@ export class ItemsEffects {
     readonly loadItems$ = createEffect(() =>
         this.actions$.pipe(
             ofType(ItemsActions.loadItems),
-            switchMap(({ category }) => {
+            switchMap(({ category, search }) => {
                 if (!category) {
                     return EMPTY;
                 }
-                return from(this.itemsQueryService.fetchByCategory(category)).pipe(
-                    map(items => ItemsActions.loadItemsSuccess({ category, items })),
+                return from(this.itemsQueryService.fetchByCategory(category, search)).pipe(
+                    map(items => ItemsActions.loadItemsSuccess({ category, search, items })),
                     catchError(err => {
                         const msg = extractErrorMessage(err, 'Ошибка загрузки');
                         this.toast.error(msg);
-                        return of(ItemsActions.loadItemsFailure({ category }));
+                        return of(ItemsActions.loadItemsFailure({ category, search }));
                     }),
                 );
             }),
@@ -67,7 +81,7 @@ export class ItemsEffects {
     readonly reorderItems$ = createEffect(() =>
         this.actions$.pipe(
             ofType(ItemsActions.reorderItems),
-            mergeMap(({ category, orderPayload }) =>
+            mergeMap(({ category, search, orderPayload }) =>
                 from(this.itemsQueryService.reorderByCategory(category, orderPayload)).pipe(
                     mergeMap(() => {
                         this.toast.success('Порядок сохранён');
@@ -75,9 +89,25 @@ export class ItemsEffects {
                     }),
                     catchError(err => {
                         this.toast.error(extractErrorMessage(err, 'Ошибка сортировки'));
-                        return of(ItemsActions.loadItems({ category }));
+                        return of(ItemsActions.loadItems({ category, search }));
                     }),
                 ),
+            ),
+        ),
+    );
+
+    /** При активном поиске список после мутаций синхронизируем с бэкендом. */
+    readonly refetchListWhenSearchingAfterMutation$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(
+                ItemsActions.createItemSuccess,
+                ItemsActions.copyItemSuccess,
+                ItemsActions.updateItemSuccess,
+            ),
+            withLatestFrom(this.store.select(itemsFeature.selectLoadedSearch)),
+            filter(([, loadedSearch]) => loadedSearch.length > 0),
+            map(([action, search]) =>
+                ItemsActions.loadItems({ category: action.category, search }),
             ),
         ),
     );

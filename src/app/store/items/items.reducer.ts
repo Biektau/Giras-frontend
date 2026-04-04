@@ -6,38 +6,54 @@ export interface ItemsState {
     items: Item[];
     loading: boolean;
     pendingCategory: string | null;
+    pendingSearch: string;
     loadedCategory: string | null;
+    loadedSearch: string;
 }
 
 export const initialItemsState: ItemsState = {
     items: [],
     loading: false,
     pendingCategory: null,
+    pendingSearch: '',
     loadedCategory: null,
+    loadedSearch: '',
 };
 
 const itemsReducer = createReducer(
     initialItemsState,
-    on(ItemsActions.loadItems, (state, { category }) => ({
-        ...state,
-        loading: true,
-        pendingCategory: category,
-        items: state.loadedCategory !== category ? [] : state.items,
-    })),
-    on(ItemsActions.loadItemsSuccess, (state, { category, items }) =>
-        state.pendingCategory === category
+    on(ItemsActions.loadItems, (state, { category, search }) => {
+        const shouldClear =
+            state.loadedCategory !== category || state.loadedSearch !== search;
+        return {
+            ...state,
+            loading: true,
+            pendingCategory: category,
+            pendingSearch: search,
+            items: shouldClear ? [] : state.items,
+        };
+    }),
+    on(ItemsActions.loadItemsSuccess, (state, { category, search, items }) =>
+        state.pendingCategory === category && state.pendingSearch === search
             ? {
                   ...state,
                   items,
                   loading: false,
                   loadedCategory: category,
+                  loadedSearch: search,
                   pendingCategory: null,
+                  pendingSearch: '',
               }
             : state,
     ),
-    on(ItemsActions.loadItemsFailure, (state, { category }) =>
-        state.pendingCategory === category
-            ? { ...state, loading: false, pendingCategory: null }
+    on(ItemsActions.loadItemsFailure, (state, { category, search }) =>
+        state.pendingCategory === category && state.pendingSearch === search
+            ? {
+                  ...state,
+                  loading: false,
+                  pendingCategory: null,
+                  pendingSearch: '',
+              }
             : state,
     ),
     on(ItemsActions.deleteItemSuccess, (state, { id }) => ({

@@ -1,11 +1,89 @@
-@use '../../../styles.scss' as v;
+@use "../../../styles.scss" as v;
 
 :host {
-    display: contents;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
 }
 
 .search-list-container {
-    background-color: v.$white;
-    border-radius: 20px;
-    height: 50px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+}
+
+.search-leading {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    z-index: 1;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: v.$blue-1;
+    pointer-events: none;
+}
+
+.search-field {
+    width: 100%;
+    height: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+    padding: 0 44px 0 44px;
+    margin: 0;
+    border-radius: 14px;
+    border: 1px solid rgba(175, 192, 233, 0.55);
+    background: v.$white;
+    font-size: 14px;
+    font-weight: 500;
+    color: v.$blue-4;
+    outline: none;
+    transition: border-color 0.18s ease;
+
+    &::placeholder {
+        color: v.$blue-1;
+        opacity: 0.82;
+        font-weight: 400;
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    &:focus-visible {
+        border-color: rgba(175, 192, 233, 0.95);
+    }
+
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+        display: none;
+    }
+}
+
+.search-clear {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: v.$blue-2;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover {
+        background: rgba(126, 157, 237, 0.18);
+        color: v.$blue-3;
+    }
 }

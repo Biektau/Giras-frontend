@@ -41,14 +41,61 @@ export class ToastService {
     }
 }
 
-export function extractErrorMessage(err: unknown, fallback: string): string {
-    if (err && typeof err === 'object') {
-        const e = err as Record<string, unknown>;
-        if (e['error'] && typeof e['error'] === 'object') {
-            const inner = e['error'] as Record<string, unknown>;
-            if (typeof inner['message'] === 'string') return inner['message'];
-        }
-        if (typeof e['message'] === 'string') return e['message'];
+function messageFromBackendBody(body: unknown): string | null {
+    if (body == null || body === '') {
+        return null;
     }
+    if (typeof body === 'string') {
+        const t = body.trim();
+        if ((t.startsWith('{') && t.endsWith('}')) || (t.startsWith('[') && t.endsWith(']'))) {
+            try {
+                return messageFromBackendBody(JSON.parse(t) as unknown);
+            } catch {
+                return t || null;
+            }
+        }
+        return t || null;
+    }
+    if (typeof body !== 'object') {
+        return null;
+    }
+    const o = body as Record<string, unknown>;
+    const msg = o['message'];
+    if (typeof msg === 'string' && msg.trim()) {
+        return msg.trim();
+    }
+    if (Array.isArray(msg) && msg.length > 0) {
+        const lines = msg.filter((x): x is string => typeof x === 'string').map(s => s.trim()).filter(Boolean);
+        if (lines.length) {
+            return lines.join('. ');
+        }
+    }
+    return null;
+}
+
+export function extractErrorMessage(err: unknown, fallback: string): string {
+    if (!err || typeof err !== 'object') {
+        return fallback;
+    }
+    const e = err as Record<string, unknown>;
+
+    // HttpErrorResponse: реальное тело в error (JSON от Nest)
+    const fromBody = messageFromBackendBody(e['error']);
+    if (fromBody) {
+        return fromBody;
+    }
+
+    // Уже распарсенное тело без оболочки Angular
+    const direct = messageFromBackendBody(e);
+    if (direct) {
+        return direct;
+    }
+
+    // Не подставляем стандартный текст Angular HttpClient
+    const topMsg = e['message'];
+    if (typeof topMsg === 'string' && topMsg.trim() && !topMsg.startsWith('Http failure response')) {
+        return topMsg.trim();
+    }
+
     return fallback;
 }

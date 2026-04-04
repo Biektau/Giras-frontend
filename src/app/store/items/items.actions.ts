@@ -1,14 +1,20 @@
 import { createAction, props } from '@ngrx/store';
 import { Item } from '../../types/item.type';
 
-export const loadItems = createAction('[Items] Load', props<{ category: string }>());
+export const loadItems = createAction(
+    '[Items] Load',
+    props<{ category: string; search: string }>(),
+);
 
 export const loadItemsSuccess = createAction(
     '[Items] Load Success',
-    props<{ category: string; items: Item[] }>(),
+    props<{ category: string; search: string; items: Item[] }>(),
 );
 
-export const loadItemsFailure = createAction('[Items] Load Failure', props<{ category: string }>());
+export const loadItemsFailure = createAction(
+    '[Items] Load Failure',
+    props<{ category: string; search: string }>(),
+);
 
 export const deleteItem = createAction('[Items] Delete', props<{ category: string; id: string }>());
 
@@ -23,7 +29,12 @@ export const copyItemSuccess = createAction(
 
 export const reorderItems = createAction(
     '[Items] Reorder',
-    props<{ category: string; items: Item[]; orderPayload: { id: string; order: number }[] }>(),
+    props<{
+        category: string;
+        search: string;
+        items: Item[];
+        orderPayload: { id: string; order: number }[];
+    }>(),
 );
 
 export const reorderItemsApiDone = createAction('[Items] Reorder API Done');
