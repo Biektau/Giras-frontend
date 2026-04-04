@@ -1,13 +1,12 @@
-import { Component, inject, computed, signal, viewChild, ElementRef, NgZone, OnDestroy } from "@angular/core";
-import { injectQuery, injectMutation, injectQueryClient } from "@tanstack/angular-query-experimental";
-import { ItemsQueryService } from "../../services/items-query.service";
+import { Component, computed, effect, inject, signal, viewChild, ElementRef, NgZone, OnDestroy } from "@angular/core";
+import { Store } from "@ngrx/store";
 import { CategoryService } from "../../services/category.service";
 import { FormStateService } from "../../services/form.service";
 import { TabService } from "../../services/tab.service";
-import { ToastService, extractErrorMessage } from "../../services/toast.service";
 import { Copy, LucideAngularModule, Trash2 } from "lucide-angular";
 import { Item } from "../../types/item.type";
-import { QUERY_KEYS } from "../../query-keys";
+import * as ItemsActions from "../../store/items/items.actions";
+import { itemsFeature } from "../../store/items/items.reducer";
 
 const SCROLL_THRESHOLD = 60;
 const SCROLL_MAX_SPEED = 14;
@@ -19,12 +18,10 @@ const SCROLL_MAX_SPEED = 14;
     imports: [LucideAngularModule]
 })
 export class ListComponent implements OnDestroy {
-    private readonly itemsQueryService = inject(ItemsQueryService);
+    private readonly store = inject(Store);
     private readonly categoryService = inject(CategoryService);
-    private readonly queryClient = injectQueryClient();
     private readonly formStateService = inject(FormStateService);
     private readonly tabService = inject(TabService);
-    private readonly toast = inject(ToastService);
     private readonly zone = inject(NgZone);
 
     readonly selectedItem = this.formStateService.selectedItem;
@@ -44,58 +41,39 @@ export class ListComponent implements OnDestroy {
     private scrollSpeed = 0;
     private scrollRafId: number | null = null;
 
-    // ── Queries & mutations ────────────────────────────────────
-    readonly itemsQuery = injectQuery(() => ({
-        queryKey: QUERY_KEYS.items(this.category()),
-        queryFn: () => this.itemsQueryService.fetchByCategory(this.category()),
-        enabled: !!this.category()
-    }));
+    private readonly itemsFromStore = this.store.selectSignal(itemsFeature.selectItems);
+    private readonly loadedCategory = this.store.selectSignal(itemsFeature.selectLoadedCategory);
+    private readonly loading = this.store.selectSignal(itemsFeature.selectLoading);
+    private readonly pendingCategory = this.store.selectSignal(itemsFeature.selectPendingCategory);
 
-    readonly deleteMutation = injectMutation(() => ({
-        mutationFn: (id: string) => this.itemsQueryService.deleteByCategory(this.category(), id),
-        onSuccess: (_data: unknown, id: string) => {
-            this.queryClient.setQueryData<Item[]>(
-                QUERY_KEYS.items(this.category()),
-                (old = []) => old.filter(i => i.id !== id),
-            );
-            this.toast.success('Элемент удалён');
-        },
-        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка удаления'))
-    }));
+    constructor() {
+        effect(() => {
+            const cat = this.category();
+            if (cat) {
+                this.store.dispatch(ItemsActions.loadItems({ category: cat }));
+            }
+        });
+    }
 
-    readonly copyMutation = injectMutation(() => ({
-        mutationFn: (id: string) => this.itemsQueryService.copyByCategory(this.category(), id),
-        onSuccess: (newItem: Item) => {
-            this.queryClient.setQueryData<Item[]>(
-                QUERY_KEYS.items(this.category()),
-                (old = []) => {
-                    const merged = [...old, newItem];
-                    merged.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-                    return merged;
-                },
-            );
-            this.toast.success('Элемент скопирован');
-        },
-        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка копирования'))
-    }));
-
-    readonly reorderMutation = injectMutation(() => ({
-        mutationFn: (items: { id: string; order: number }[]) =>
-            this.itemsQueryService.reorderByCategory(this.category(), items),
-        onSuccess: () => this.toast.success('Порядок сохранён'),
-        onError: (err: unknown) => {
-            this.toast.error(extractErrorMessage(err, 'Ошибка сортировки'));
-            this.queryClient.invalidateQueries({ queryKey: QUERY_KEYS.items(this.category()) });
+    readonly items = computed(() => {
+        const cat = this.category();
+        if (!cat || this.loadedCategory() !== cat) {
+            return [];
         }
-    }));
+        return this.itemsFromStore();
+    });
 
-    readonly items = computed(() => this.itemsQuery.data() ?? []);
-    readonly isLoading = computed(() => this.itemsQuery.isPending());
+    readonly isLoading = computed(() => {
+        const cat = this.category();
+        return !!cat && this.loading() && this.pendingCategory() === cat;
+    });
 
     // ── List actions ───────────────────────────────────────────
     onDelete(id: string, event: MouseEvent) {
         event.stopPropagation();
-        this.deleteMutation.mutate(id);
+        const cat = this.category();
+        if (!cat) return;
+        this.store.dispatch(ItemsActions.deleteItem({ category: cat, id }));
     }
 
     onSelect(item: Item) {
@@ -105,7 +83,9 @@ export class ListComponent implements OnDestroy {
 
     onCopy(id: string, event: MouseEvent) {
         event.stopPropagation();
-        this.copyMutation.mutate(id);
+        const cat = this.category();
+        if (!cat) return;
+        this.store.dispatch(ItemsActions.copyItem({ category: cat, id }));
     }
 
     // ── DnD ────────────────────────────────────────────────────
@@ -161,14 +141,15 @@ export class ListComponent implements OnDestroy {
             return;
         }
 
+        const cat = this.category();
+        if (!cat) return;
+
         const list = [...this.items()];
         const [moved] = list.splice(fromIndex, 1);
         list.splice(toIndex, 0, moved);
 
-        this.queryClient.setQueryData<Item[]>(QUERY_KEYS.items(this.category()), list);
-
         const payload = list.map((item, i) => ({ id: item.id, order: i }));
-        this.reorderMutation.mutate(payload);
+        this.store.dispatch(ItemsActions.reorderItems({ category: cat, items: list, orderPayload: payload }));
     }
 
     onDragEnd(event: DragEvent) {

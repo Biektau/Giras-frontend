@@ -1,18 +1,18 @@
-import { Component, inject, effect } from "@angular/core";
+import { Component, effect, inject } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { Actions, ofType } from "@ngrx/effects";
+import { filter } from "rxjs";
+import { Store } from "@ngrx/store";
 import { WorkwearSize } from "../../enums/workwear-size.enum";
 import { WorkwearSeason } from "../../enums/workwear-season.enum";
 import { WorkwearItemSet } from "../../enums/workwear-set.enum";
 import { CustomSelectComponent, SelectOption } from "../custom-select/custom-select.component";
-import { WorkwearService } from "../../services/workwear.service";
-import { Workwear } from "../../interfaces/workwear.interface";
 import { TabService } from "../../services/tab.service";
 import { FormStateService } from "../../services/form.service";
-import { injectMutation, injectQueryClient } from "@tanstack/angular-query-experimental";
 import { CategoryService } from "../../services/category.service";
-import { ToastService, extractErrorMessage } from "../../services/toast.service";
-import { Item } from "../../types/item.type";
-import { QUERY_KEYS } from "../../query-keys";
+import { Workwear } from "../../interfaces/workwear.interface";
+import * as ItemsActions from "../../store/items/items.actions";
 
 @Component({
     imports: [ReactiveFormsModule, CustomSelectComponent],
@@ -34,12 +34,11 @@ export class CreateWorkwearFormComponent {
     }
 
     private readonly fb = inject(FormBuilder);
-    private readonly workwearService = inject(WorkwearService);
     private readonly formStateService = inject(FormStateService);
     private readonly tabService = inject(TabService);
-    private readonly queryClient = injectQueryClient();
     private readonly categoryService = inject(CategoryService);
-    private readonly toast = inject(ToastService);
+    private readonly store = inject(Store);
+    private readonly actions$ = inject(Actions);
 
     readonly isEditMode = this.tabService.activeTab;
 
@@ -60,36 +59,18 @@ export class CreateWorkwearFormComponent {
         material: ['', [Validators.required, Validators.maxLength(100)]]
     });
 
-    readonly createMutation = injectMutation(() => ({
-        mutationFn: (formData: FormData) => this.workwearService.createItem(formData),
-        onSuccess: (newItem: Item) => {
-            this.queryClient.setQueryData<Item[]>(
-                QUERY_KEYS.items(this.categoryService.current()),
-                (old = []) => [...old, newItem],
-            );
-            this.toast.success('Элемент создан');
+    constructor() {
+        this.actions$.pipe(
+            ofType(ItemsActions.createItemSuccess),
+            filter(({ category }) => category === this.categoryService.current()),
+            takeUntilDestroyed(),
+        ).subscribe(() => {
             this.workwearForm.reset({ isCertified: false, size: [] });
             this.existingImages = [];
             this.selectedFiles = [];
             this.newPreviews = [];
-        },
-        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка создания'))
-    }));
+        });
 
-    readonly updateMutation = injectMutation(() => ({
-        mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
-            this.workwearService.updateItem(id, formData),
-        onSuccess: (updatedItem: Item) => {
-            this.queryClient.setQueryData<Item[]>(
-                QUERY_KEYS.items(this.categoryService.current()),
-                (old = []) => old.map(i => i.id === updatedItem.id ? updatedItem : i),
-            );
-            this.toast.success('Изменения сохранены');
-        },
-        onError: (err: unknown) => this.toast.error(extractErrorMessage(err, 'Ошибка обновления'))
-    }));
-
-    constructor() {
         effect(() => {
             const item = this.formStateService.selectedItem() as Workwear | null;
 
@@ -175,11 +156,17 @@ export class CreateWorkwearFormComponent {
         this.selectedFiles.forEach(file => formData.append('images', file));
 
         const selectedItem = this.formStateService.selectedItem() as Workwear | null;
+        const category = this.categoryService.current();
+        if (!category) {
+            return;
+        }
 
         if (selectedItem) {
-            this.updateMutation.mutate({ id: selectedItem.id, formData });
+            this.store.dispatch(
+                ItemsActions.updateItem({ category, id: selectedItem.id, formData }),
+            );
         } else {
-            this.createMutation.mutate(formData);
+            this.store.dispatch(ItemsActions.createItem({ category, formData }));
         }
     }
 
