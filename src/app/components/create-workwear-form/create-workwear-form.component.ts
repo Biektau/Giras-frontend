@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Actions, ofType } from "@ngrx/effects";
 import { filter } from "rxjs";
 import { Store } from "@ngrx/store";
+import { WorkwearCategory } from "../../enums/workwear-category.enum";
 import { WorkwearSize } from "../../enums/workwear-size.enum";
 import { WorkwearSeason } from "../../enums/workwear-season.enum";
 import { WorkwearItemSet } from "../../enums/workwear-set.enum";
@@ -21,6 +22,7 @@ import * as ItemsActions from "../../store/items/items.actions";
     styleUrl: './create-workwear-form.component.scss'
 })
 export class CreateWorkwearFormComponent {
+    categorySelectOptions: SelectOption[] = Object.values(WorkwearCategory).map(c => ({ value: c, label: c }));
     sizeSelectOptions: SelectOption[] = Object.values(WorkwearSize).map(s => ({ value: s, label: s }));
     seasonSelectOptions: SelectOption[] = Object.values(WorkwearSeason).map(s => ({ value: s, label: s }));
     setSelectOptions: SelectOption[] = Object.values(WorkwearItemSet).map(s => ({ value: s, label: s }));
@@ -45,6 +47,7 @@ export class CreateWorkwearFormComponent {
     workwearForm = this.fb.group({
         name: ['', [Validators.required, Validators.maxLength(200)]],
         description: [''],
+        category: ['', Validators.required],
         size: [[] as string[], Validators.required],
         color: ['', [Validators.required, Validators.maxLength(100)]],
         season: ['', Validators.required],
@@ -65,7 +68,7 @@ export class CreateWorkwearFormComponent {
             filter(({ category }) => category === this.categoryService.current()),
             takeUntilDestroyed(),
         ).subscribe(() => {
-            this.workwearForm.reset({ isCertified: false, size: [] });
+            this.workwearForm.reset({ isCertified: false, size: [], category: '' });
             this.existingImages = [];
             this.selectedFiles = [];
             this.newPreviews = [];
@@ -78,6 +81,7 @@ export class CreateWorkwearFormComponent {
                 this.workwearForm.patchValue({
                     name: item.name,
                     description: item.description ?? '',
+                    category: item.category,
                     size: item.size as string[],
                     color: item.color,
                     season: item.season,
@@ -91,7 +95,7 @@ export class CreateWorkwearFormComponent {
                 this.selectedFiles = [];
                 this.newPreviews = [];
             } else {
-                this.workwearForm.reset({ isCertified: false, size: [] });
+                this.workwearForm.reset({ isCertified: false, size: [], category: '' });
                 this.existingImages = [];
                 this.selectedFiles = [];
                 this.newPreviews = [];
@@ -143,6 +147,7 @@ export class CreateWorkwearFormComponent {
 
         formData.append('name', values.name ?? '');
         formData.append('description', values.description ?? '');
+        formData.append('category', values.category ?? '');
         formData.append('color', values.color ?? '');
         formData.append('season', values.season ?? '');
         formData.append('set', values.set ?? '');
@@ -173,7 +178,7 @@ export class CreateWorkwearFormComponent {
     resetForm(): void {
         this.formStateService.clear();
         this.tabService.setTab('create');
-        this.workwearForm.reset({ isCertified: false, size: [] });
+        this.workwearForm.reset({ isCertified: false, size: [], category: '' });
         this.existingImages = [];
         this.selectedFiles = [];
         this.newPreviews = [];
@@ -186,6 +191,7 @@ export class CreateWorkwearFormComponent {
         if (control.errors['required']) {
             const labels: Record<string, string> = {
                 name: 'Название обязательно',
+                category: 'Категория обязательна',
                 size: 'Размер обязателен',
                 color: 'Цвет обязателен',
                 season: 'Сезон обязателен',

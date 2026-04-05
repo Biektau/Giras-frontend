@@ -17,6 +17,16 @@
           placeholder="Введите описание"
         ></textarea>
       </div>
+
+      <div class="field">
+        <label>Категория *</label>
+        <app-custom-select
+          formControlName="category"
+          [options]="categorySelectOptions"
+          placeholder="Выберите категорию"
+        />
+        <span class="error">{{ getErrorMessage("category") }}</span>
+      </div>
     </div>
 
     <div class="divider"></div>
